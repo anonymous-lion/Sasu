@@ -1,4 +1,3 @@
-// Birthday site settings: edit these values for Saswatha, the date, and the surprise.
 const TARGET_DATE = "2026-08-14T00:00:00+05:30";
 const PARTICLE_COUNT = 64;
 
@@ -7,6 +6,10 @@ const skyScene = document.querySelector(".sky-scene");
 const balloonLayer = document.querySelector(".balloon-layer");
 const birthdayGate = document.querySelector("#birthday-gate");
 const gateNote = document.querySelector("#gate-note");
+const photoModal = document.querySelector("#photo-modal");
+const photoModalImage = document.querySelector("#photo-modal-image");
+const photoModalNote = document.querySelector("#photo-modal-note");
+const photoModalClose = document.querySelector("#photo-modal-close");
 const surpriseButton = document.querySelector("#surprise-button");
 const surpriseMessage = document.querySelector("#surprise-message");
 const countdownNote = document.querySelector("#countdown-note");
@@ -23,6 +26,8 @@ const gateCountdownParts = {
   seconds: document.querySelector("#gate-seconds")
 };
 let birthdayGateCelebrated = false;
+let lastFocusedPhotoTile = null;
+let activeMemoryNote = null;
 
 function randomBetween(min, max) {
   return Math.random() * (max - min) + min;
@@ -239,9 +244,72 @@ function setupSurprise() {
   });
 }
 
+function openPhotoModal(image) {
+  if (!photoModal || !photoModalImage || !image) return;
+
+  lastFocusedPhotoTile = document.activeElement;
+  activeMemoryNote = image.closest(".memory-tile")?.querySelector(".memory-note") || null;
+  photoModalImage.src = image.currentSrc || image.src;
+  photoModalImage.alt = image.alt || "Memory photo";
+  if (photoModalNote) {
+    photoModalNote.innerHTML = activeMemoryNote?.innerHTML || "";
+  }
+  photoModal.classList.add("is-open");
+  photoModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("is-modal-open");
+  if (photoModalClose) photoModalClose.focus();
+}
+
+function closePhotoModal() {
+  if (!photoModal || !photoModalImage || !photoModal.classList.contains("is-open")) return;
+
+  photoModal.classList.remove("is-open");
+  photoModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("is-modal-open");
+  if (activeMemoryNote && photoModalNote) {
+    activeMemoryNote.innerHTML = photoModalNote.innerHTML;
+  }
+  photoModalImage.src = "";
+  photoModalImage.alt = "";
+  if (photoModalNote) photoModalNote.innerHTML = "";
+  activeMemoryNote = null;
+
+  if (lastFocusedPhotoTile && typeof lastFocusedPhotoTile.focus === "function") {
+    lastFocusedPhotoTile.focus();
+  }
+}
+
+function setupPhotoModal() {
+  const photoButtons = document.querySelectorAll(".memory-photo-button");
+  if (!photoModal || !photoModalImage || photoButtons.length === 0) return;
+
+  photoButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      openPhotoModal(button.querySelector("img"));
+    });
+  });
+
+  photoModal.addEventListener("click", (event) => {
+    if (event.target.matches(".photo-modal-backdrop")) {
+      closePhotoModal();
+    }
+  });
+
+  if (photoModalClose) {
+    photoModalClose.addEventListener("click", closePhotoModal);
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closePhotoModal();
+    }
+  });
+}
+
 createSkyParticles();
 setupRevealAnimations();
 setupSurprise();
+setupPhotoModal();
 updateCountdown();
 setInterval(updateCountdown, 1000);
 
