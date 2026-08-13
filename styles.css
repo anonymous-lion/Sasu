@@ -41,7 +41,8 @@ body {
   overflow-x: hidden;
 }
 
-body.is-gated {
+body.is-gated,
+body.is-modal-open {
   overflow: hidden;
 }
 
@@ -445,47 +446,206 @@ a {
 
 .memories-section {
   background:
-    linear-gradient(130deg, rgba(42, 191, 204, 0.24), transparent 38%),
-    linear-gradient(180deg, #91dbe9, #c8f2fb 70%);
+    linear-gradient(130deg, rgba(56, 137, 207, 0.16), transparent 38%),
+    linear-gradient(180deg, #2d70bd, #5b99d7 70%);
 }
 
-.gallery-grid {
+.memories-heading {
   display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(14rem, 0.9fr);
+  gap: 1.5rem;
+  align-items: start;
+  width: min(72rem, 100%);
+  margin: 0 auto 1rem;
+}
+
+.memories-heading h2 {
+  margin: 0;
+  color: #061e42;
+  font-family: Georgia, "Playfair Display", serif;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.memories-heading p {
+  margin: 0.1rem 0 0;
+  color: rgba(6, 30, 66, 0.62);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.masonry-gallery {
+  display: grid;
+  grid-auto-flow: dense;
+  grid-auto-rows: 7.5rem;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.45rem;
   width: min(72rem, 100%);
   margin: 0 auto;
 }
 
-.memory-card {
+.memory-tile {
+  display: block;
   margin: 0;
   overflow: hidden;
-  border: 1px solid rgba(43, 115, 166, 0.16);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 1.4rem 3rem rgba(34, 117, 177, 0.16);
-  transition: transform 200ms ease, border-color 200ms ease, background 200ms ease;
+  grid-row: span 2;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 1rem 2.2rem rgba(6, 30, 66, 0.16);
+  transition: filter 200ms ease, transform 200ms ease;
 }
 
-.memory-card:hover {
-  border-color: rgba(84, 184, 239, 0.58);
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-0.35rem);
+.memory-tile:hover,
+.memory-tile:focus-within {
+  filter: brightness(1.05) saturate(1.06);
+  outline: 3px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 2px;
+  transform: translateY(-0.18rem);
 }
 
-.memory-card img {
+.memory-photo-button {
+  display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.memory-photo-button:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.92);
+  outline-offset: -3px;
+}
+
+.memory-photo-button img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-.memory-card figcaption {
-  min-height: 4.2rem;
-  padding: 1rem;
-  color: rgba(12, 47, 89, 0.84);
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 1rem;
+.memory-note {
+  display: none;
+}
+
+.memory-tile.tile-tall {
+  grid-row: span 3;
+}
+
+.memory-tile.tile-wide {
+  grid-column: span 2;
+}
+
+.photo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 220ms ease, visibility 220ms ease;
+}
+
+.photo-modal.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.photo-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(4, 22, 45, 0.72);
+  backdrop-filter: blur(10px);
+  cursor: zoom-out;
+}
+
+.photo-modal-window {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  max-width: min(92vw, 58rem);
+  max-height: 88svh;
+  padding: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 2rem 5rem rgba(4, 22, 45, 0.36);
+  transform: scale(0.96) translateY(0.5rem);
+  transition: transform 220ms ease;
+}
+
+.photo-modal.is-open .photo-modal-window {
+  transform: scale(1) translateY(0);
+}
+
+.photo-modal-window img {
+  display: block;
+  max-width: calc(92vw - 1.1rem);
+  max-height: calc(88svh - 5.4rem);
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.photo-modal-note {
+  display: block;
+  min-height: 3rem;
+  max-height: 8rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 6px;
+  color: rgba(6, 30, 66, 0.86);
+  background: rgba(255, 255, 255, 0.9);
+  font-family: "Lato", "Inter", system-ui, sans-serif;
+  font-size: 0.95rem;
   line-height: 1.45;
+  overflow-y: auto;
+}
+
+.photo-modal-note:empty::before {
+  content: "";
+}
+
+.photo-modal-note:focus {
+  outline: 2px solid rgba(50, 168, 216, 0.8);
+  outline-offset: -2px;
+}
+
+.photo-modal-close {
+  position: absolute;
+  top: -0.85rem;
+  right: -0.85rem;
+  z-index: 2;
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  color: var(--navy-950);
+  background: linear-gradient(135deg, #ffffff, var(--sky-300));
+  box-shadow: 0 0.8rem 1.8rem rgba(4, 22, 45, 0.22);
+  cursor: pointer;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.photo-modal-close:hover,
+.photo-modal-close:focus-visible {
+  outline: none;
+  filter: brightness(1.04);
+  transform: translateY(-1px);
 }
 
 .surprise-section {
@@ -648,11 +808,20 @@ a {
 }
 
 @media (max-width: 900px) {
+  .hero-name {
+    font-size: 5.4rem;
+  }
+
   .hero h1 {
     font-size: 4.3rem;
   }
 
-  .gallery-grid {
+  .memories-heading {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .masonry-gallery {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -688,6 +857,10 @@ a {
     font-size: 3.25rem;
   }
 
+  .hero-name {
+    font-size: 3.7rem;
+  }
+
   .hero-copy {
     font-size: 1.08rem;
   }
@@ -714,12 +887,37 @@ a {
     font-size: 1.9rem;
   }
 
-  .gallery-grid {
-    grid-template-columns: 1fr;
+  .memories-heading h2 {
+    font-size: 1.65rem;
   }
 
-  .memory-card img {
-    aspect-ratio: 5 / 4;
+  .masonry-gallery {
+    grid-auto-rows: 7rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.38rem;
+  }
+
+  .memory-tile.tile-wide {
+    grid-column: span 2;
+  }
+
+  .photo-modal {
+    padding: 0.75rem;
+  }
+
+  .photo-modal-window {
+    max-width: 96vw;
+    max-height: 86svh;
+  }
+
+  .photo-modal-window img {
+    max-width: calc(96vw - 1.1rem);
+    max-height: calc(86svh - 5.4rem);
+  }
+
+  .photo-modal-close {
+    top: 0.35rem;
+    right: 0.35rem;
   }
 
   .countdown {
